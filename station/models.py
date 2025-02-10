@@ -1,5 +1,5 @@
 from django.db import models
-
+from train_station import settings
 
 class TrainType(models.Model):
     name = models.CharField(max_length=100, unique=True)
@@ -44,8 +44,12 @@ class Station(models.Model):
 
 
 class Route(models.Model):
-    source = models.ForeignKey(Station, on_delete=models.CASCADE)
-    destination = models.ForeignKey(Station, on_delete=models.CASCADE)
+    source = models.ForeignKey(Station,
+                               on_delete=models.CASCADE,
+                               related_name="route_source")
+    destination = models.ForeignKey(Station,
+                                    on_delete=models.CASCADE,
+                                    related_name="route_destination")
     distance = models.IntegerField()
     
     def __str__(self):
