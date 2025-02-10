@@ -7,7 +7,7 @@ from station.models import (TrainType,
                             Crew,
                             Station,
                             Route)
-from station.serializers import (RouteListSerializer, TrainListSerializer, TrainTypeSerializer,
+from station.serializers import (JourneyListSerializer, RouteListSerializer, TrainListSerializer, TrainTypeSerializer,
                                  TrainSerializer,
                                  OrderListSerializer,
                                  OrderSerializer,
@@ -52,9 +52,12 @@ class TrainTypeViewSet(mixins.CreateModelMixin,
 
 
 class TrainViewSet(viewsets.ModelViewSet):
-    queryset = Train.objects.all()
+    queryset = Train.objects.all().select_related("train_type")
     serializer_class = TrainSerializer
     
+    def get_queryset(self):
+        return super().get_queryset()
+
     def get_serializer_class(self):
         if self.action == "list":
             return TrainListSerializer
@@ -64,8 +67,17 @@ class TrainViewSet(viewsets.ModelViewSet):
 class OrderViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, GenericViewSet):
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
+    
+    def get_queryset(self):
+        return Order.objects.filter(user=self.request.user)
 
 
 class JourneyViewSet(viewsets.ModelViewSet):
-    queryset = Journey.objects.all()
+    queryset = (Journey.objects.all().
+                select_related("route", "train"))
     serializer_class = JourneySerializer
+    
+    def get_serializer_class(self):
+        if self.action == "list":
+            return JourneyListSerializer
+        return JourneySerializer

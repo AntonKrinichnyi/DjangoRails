@@ -62,22 +62,46 @@ class TrainSerializer(serializers.ModelSerializer):
                   "capacity")
 
 
+class JourneySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Journey
+        fields = ("id",
+                  "route",
+                  "train",
+                  "departure_time",
+                  "arrival_time")
+
+
+class JourneyListSerializer(JourneySerializer):
+    route = serializers.SlugRelatedField(
+        many=False,
+        read_only=True,
+        slug_field="route_name"
+    )
+    train = serializers.SlugRelatedField(
+        many=False,
+        read_only=True,
+        slug_field="name"
+    )
+    class Meta:
+        model = Journey
+        fields = ("id",
+                  "route",
+                  "train",
+                  "departure_time",
+                  "arrival_time")
+    
+
 class TrainListSerializer(TrainSerializer):
     train_type = serializers.SlugRelatedField(
         many=False,
         read_only=True,
         slug_field="name"
     )
-    crew = serializers.SlugRelatedField(
-        many=True,
-        read_only=True,
-        slug_field="full_name"
-    )
     class Meta:
         model = Train
         fields = ("id",
                   "name",
-                  "crew",
                   "cargo_num",
                   "places_in_cargo",
                   "train_type",
@@ -90,14 +114,10 @@ class TicketSerializer(serializers.ModelSerializer):
         fields = ("id", "cargo", "seat", "journey", "order")
 
 
-class JourneySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Journey
-        fields = ("id",
-                  "route",
-                  "train",
-                  "departure_time",
-                  "arrival_time")
+class TicketListSerializer(TicketSerializer):
+    journey = JourneyListSerializer(many=True, read_only=True)
+
+
 
 
 class OrderSerializer(serializers.ModelSerializer):
@@ -116,5 +136,5 @@ class OrderSerializer(serializers.ModelSerializer):
 
 
 class OrderListSerializer(OrderSerializer):
-    pass
+    tickets = TicketListSerializer(many=True, read_only=True)
     
