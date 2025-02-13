@@ -1,3 +1,4 @@
+from django.db.models import F
 from rest_framework import mixins, viewsets
 from rest_framework.viewsets import GenericViewSet
 from station.models import (TrainType,
@@ -35,8 +36,25 @@ class RouteViewSet(mixins.CreateModelMixin,
                    mixins.ListModelMixin,
                    mixins.RetrieveModelMixin,
                    GenericViewSet):
-    queryset = Route.objects.all()
+    queryset = Route.objects.all().select_related()
     serializer_class = RouteSerializer
+    
+    def get_queryset(self):
+        source = self.request.query_params.get("source")
+        destination = self.request.query_params.get("destination")
+        
+        queryset = self.queryset
+        
+        if source:
+            source_id = int(self.source)
+            queryset = queryset.filter(source__id=source_id)
+        
+        if destination:
+            destination_id = int(self.destination)
+            queryset = queryset.filter(destination__id=destination_id)
+        
+        return queryset.distinct()
+        
     
     def get_serializer_class(self):
         if self.action == "list":
@@ -73,11 +91,11 @@ class OrderViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, GenericViewSe
 
 
 class JourneyViewSet(viewsets.ModelViewSet):
-    queryset = (Journey.objects.all().
-                select_related("route", "train"))
+    queryset = (Journey.objects.
+                select_related())
     serializer_class = JourneySerializer
     
     def get_serializer_class(self):
-        if self.action == "list":
+        if self.action in ("list", "post"):
             return JourneyListSerializer
         return JourneySerializer

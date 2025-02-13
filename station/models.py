@@ -1,4 +1,5 @@
 from django.db import models
+from django.forms import ValidationError
 from train_station import settings
 
 class TrainType(models.Model):
@@ -44,25 +45,16 @@ class Station(models.Model):
     longitude = models.FloatField()
     
     def __str__(self):
-        return f"{self.name} station"
+        return self.name
 
 
 class Route(models.Model):
-    source = models.ForeignKey(Station,
-                               on_delete=models.CASCADE,
-                               related_name="route_source")
-    destination = models.ForeignKey(Station,
-                                    on_delete=models.CASCADE,
-                                    related_name="route_destination")
+    source = models.ForeignKey(Station, on_delete=models.CASCADE, related_name="route_src")
+    destination = models.ForeignKey(Station, on_delete=models.CASCADE, related_name="route_dest")
     distance = models.IntegerField()
     
-    @property
-    def route_name(self) -> str:
-        return f"{self.source} - {self.destination}"
-
-    def __str__(self):
-        return f"{self.source} - {self.destination}"
-
+    def __str__(self) -> str:
+        return self.route_name
 
 class Journey(models.Model):
     route = models.ForeignKey(Route, on_delete=models.CASCADE)
@@ -81,12 +73,58 @@ class Order(models.Model):
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE
     )
     
+    class Meta:
+        ordering = ["-created_at"]
 
 class Ticket(models.Model):
     cargo = models.IntegerField()
     seat = models.IntegerField()
-    journey = models.ForeignKey(Journey, on_delete=models.CASCADE)
-    order = models.ForeignKey(Order, on_delete=models.CASCADE)
+    journey = models.ForeignKey(Journey,
+                                on_delete=models.CASCADE,
+                                related_name="tickets")
+    order = models.ForeignKey(Order,
+                              on_delete=models.CASCADE,
+                              related_name="tickets")
 
     def __str__(self):
         return f"{self.journey} cargo: {self.cargo}, seat: {self.seat}"
+
+    @staticmethod
+    def validate_ticket(cargo, seat, journey, error_to_rise):
+        for ticket_attr_value, ticket_attr_name, journey_attr_name in [
+            (cargo, "cargo", "cargos"),
+            (seat, "seat", "seats"),
+        ]:
+            count_attrs = getattr(journey, journey_attr_name)
+            if not (1 <= ticket_attr_value <= count_attrs):
+                raise error_to_rise(
+                    {
+                        ticket_attr_name: f"{ticket_attr_name} "
+                        f"number must be in avaliable range: "
+                        f"(1, {journey_attr_name}): "
+                        f"(1, {count_attrs})"
+                    }
+                )
+    def clean(self):
+        Ticket.validate_ticket(
+            self.cargo,
+            self.seat,
+            self.journey.route,
+            ValidationError,
+        )
+    
+    def save(self,
+             force_insert = False,
+             force_update = False,
+             using = None,
+             update_fields = None):
+        self.full_clean()
+        return super(Ticket, self).save(
+            force_insert,
+            force_update,
+            using,
+            update_fields
+        )
+    
+    class Meta:
+        unique_together = ("journey", "cargo", "seat")

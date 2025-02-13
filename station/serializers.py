@@ -40,7 +40,7 @@ class RouteListSerializer(RouteSerializer):
         read_only = True,
         slug_field = "name"
     )
-    class Meta:    
+    class Meta:
         model = Route
         fields = ("id", "source", "destination", "distance")
 
@@ -76,7 +76,7 @@ class JourneyListSerializer(JourneySerializer):
     route = serializers.SlugRelatedField(
         many=False,
         read_only=True,
-        slug_field="route_name"
+        slug_field="full_name"
     )
     train = serializers.SlugRelatedField(
         many=False,
@@ -90,7 +90,7 @@ class JourneyListSerializer(JourneySerializer):
                   "train",
                   "departure_time",
                   "arrival_time")
-    
+
 
 class TrainListSerializer(TrainSerializer):
     train_type = serializers.SlugRelatedField(
@@ -116,7 +116,6 @@ class TicketSerializer(serializers.ModelSerializer):
 
 class TicketListSerializer(TicketSerializer):
     journey = JourneyListSerializer(many=True, read_only=True)
-
 
 
 
