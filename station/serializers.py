@@ -55,7 +55,6 @@ class TrainSerializer(serializers.ModelSerializer):
         model = Train
         fields = ("id",
                   "name",
-                  "crew",
                   "cargo_num",
                   "places_in_cargo",
                   "train_type",
@@ -76,7 +75,7 @@ class JourneyListSerializer(JourneySerializer):
     route = serializers.SlugRelatedField(
         many=False,
         read_only=True,
-        slug_field="full_name"
+        slug_field="full_route"
     )
     train = serializers.SlugRelatedField(
         many=False,
@@ -90,6 +89,26 @@ class JourneyListSerializer(JourneySerializer):
                   "train",
                   "departure_time",
                   "arrival_time")
+
+
+class JourneyCreateSerializer(JourneySerializer):
+    class Meta:
+        model=Journey
+        fields=("route",
+                "train",
+                "departure_time",
+                "arrival_time")
+
+
+class JourneyDetailSerializer(JourneySerializer):
+    train = TrainSerializer()
+    route = RouteListSerializer()
+    class Meta:
+        model=Journey
+        fields=("route",
+                "train",
+                "departure_time",
+                "arrival_time")
 
 
 class TrainListSerializer(TrainSerializer):

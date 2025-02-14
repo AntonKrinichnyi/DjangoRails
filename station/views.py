@@ -1,3 +1,4 @@
+from datetime import datetime
 from django.db.models import F
 from rest_framework import mixins, viewsets
 from rest_framework.viewsets import GenericViewSet
@@ -8,7 +9,7 @@ from station.models import (TrainType,
                             Crew,
                             Station,
                             Route)
-from station.serializers import (JourneyListSerializer, RouteListSerializer, TrainListSerializer, TrainTypeSerializer,
+from station.serializers import (JourneyCreateSerializer, JourneyDetailSerializer, JourneyListSerializer, RouteListSerializer, TrainListSerializer, TrainTypeSerializer,
                                  TrainSerializer,
                                  OrderListSerializer,
                                  OrderSerializer,
@@ -36,25 +37,9 @@ class RouteViewSet(mixins.CreateModelMixin,
                    mixins.ListModelMixin,
                    mixins.RetrieveModelMixin,
                    GenericViewSet):
-    queryset = Route.objects.all().select_related()
+    queryset = (Route.objects.all().
+                select_related("train", "route__sorce__name", "route__destination__name"))
     serializer_class = RouteSerializer
-    
-    def get_queryset(self):
-        source = self.request.query_params.get("source")
-        destination = self.request.query_params.get("destination")
-        
-        queryset = self.queryset
-        
-        if source:
-            source_id = int(self.source)
-            queryset = queryset.filter(source__id=source_id)
-        
-        if destination:
-            destination_id = int(self.destination)
-            queryset = queryset.filter(destination__id=destination_id)
-        
-        return queryset.distinct()
-        
     
     def get_serializer_class(self):
         if self.action == "list":
@@ -92,10 +77,29 @@ class OrderViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, GenericViewSe
 
 class JourneyViewSet(viewsets.ModelViewSet):
     queryset = (Journey.objects.
-                select_related())
+                select_related("train", "route__source", "route__destination"))
     serializer_class = JourneySerializer
     
+    def get_queryset(self):
+        departure_date = self.request.query_params.get("date")
+        route_id_str = self.request.query_params.get("route")
+
+        queryset = self.queryset
+
+        if departure_date:
+            departure_date = datetime.strptime(departure_date, "%Y-%m-%d").date()
+            queryset = queryset.filter(departure__date=departure_date)
+
+        if route_id_str:
+            queryset = queryset.filter(route_id=int(route_id_str))
+
+        return queryset
+    
     def get_serializer_class(self):
-        if self.action in ("list", "post"):
+        if self.action == "list":
             return JourneyListSerializer
+        if self.action == "post":
+            return JourneyCreateSerializer
+        if self.action == "retrieve":
+            return JourneyDetailSerializer
         return JourneySerializer

@@ -27,7 +27,6 @@ class Train(models.Model):
     cargo_num = models.IntegerField()
     places_in_cargo = models.IntegerField()
     train_type = models.ForeignKey(TrainType, on_delete=models.CASCADE)
-    crew = models.ManyToManyField(Crew, blank=False)
     
     @property
     def capacity(self) -> int:
@@ -53,8 +52,12 @@ class Route(models.Model):
     destination = models.ForeignKey(Station, on_delete=models.CASCADE, related_name="route_dest")
     distance = models.IntegerField()
     
+    @property
+    def full_route(self) -> str:
+        return f"{self.source.name} - {self.destination.name}"
+
     def __str__(self) -> str:
-        return self.route_name
+        return self.full_route
 
 class Journey(models.Model):
     route = models.ForeignKey(Route, on_delete=models.CASCADE)
