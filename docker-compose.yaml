@@ -1,5 +1,5 @@
 services:
-  cinema_service:
+  train_station:
     build:
     context: .
     env_file:
