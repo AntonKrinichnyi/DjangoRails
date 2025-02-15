@@ -197,59 +197,52 @@ class TrainImageUploadTests(TestCase):
             )
 
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
-        movie = Movie.objects.get(title="Title")
-        self.assertFalse(movie.image)
+        train = Train.objects.get(name="Sample train")
+        self.assertFalse(train.image)
 
-    def test_image_url_is_shown_on_movie_detail(self):
-        url = image_upload_url(self.movie.id)
+    def test_image_url_is_shown_on_train_detail(self):
+        url = image_upload_url(self.train.id)
         with tempfile.NamedTemporaryFile(suffix=".jpg") as ntf:
             img = Image.new("RGB", (10, 10))
             img.save(ntf, format="JPEG")
             ntf.seek(0)
             self.client.post(url, {"image": ntf}, format="multipart")
-        res = self.client.get(detail_url(self.movie.id))
+        res = self.client.get(detail_url(self.train.id))
 
         self.assertIn("image", res.data)
 
-    def test_image_url_is_shown_on_movie_list(self):
-        url = image_upload_url(self.movie.id)
+    def test_image_url_is_shown_on_train_list(self):
+        url = image_upload_url(self.train.id)
         with tempfile.NamedTemporaryFile(suffix=".jpg") as ntf:
             img = Image.new("RGB", (10, 10))
             img.save(ntf, format="JPEG")
             ntf.seek(0)
             self.client.post(url, {"image": ntf}, format="multipart")
-        res = self.client.get(MOVIE_URL)
+        res = self.client.get(TRAIN_URL)
 
         self.assertIn("image", res.data[0].keys())
 
-    def test_image_url_is_shown_on_movie_session_detail(self):
-        url = image_upload_url(self.movie.id)
-        with tempfile.NamedTemporaryFile(suffix=".jpg") as ntf:
-            img = Image.new("RGB", (10, 10))
-            img.save(ntf, format="JPEG")
-            ntf.seek(0)
-            self.client.post(url, {"image": ntf}, format="multipart")
-        res = self.client.get(MOVIE_SESSION_URL)
-
-        self.assertIn("movie_image", res.data[0].keys())
-
-    def test_put_movie_not_allowed(self):
+    def test_put_train_not_allowed(self):
+        train_type = TrainType.objects.create(
+            name="Sample train type name"
+        )
         payload = {
-            "title": "New movie",
-            "description": "New description",
-            "duration": 98,
+            "name": "Sample train name",
+            "train_type": train_type,
+            "cargo_num": 10,
+            "places_in_cargo": 15,
         }
 
-        movie = sample_movie()
-        url = detail_url(movie.id)
+        train = sample_train()
+        url = detail_url(train.id)
 
         res = self.client.put(url, payload)
 
         self.assertEqual(res.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 
-    def test_delete_movie_not_allowed(self):
-        movie = sample_movie()
-        url = detail_url(movie.id)
+    def test_delete_train_not_allowed(self):
+        train = sample_train()
+        url = detail_url(train.id)
 
         res = self.client.delete(url)
 
