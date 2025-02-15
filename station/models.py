@@ -1,6 +1,9 @@
+import os
+import uuid
 from django.db import models
 from django.forms import ValidationError
 from train_station import settings
+from django.utils.text import slugify
 
 class TrainType(models.Model):
     name = models.CharField(max_length=100, unique=True)
@@ -20,6 +23,11 @@ class Crew(models.Model):
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
 
+def train_image_file_path(instance, filename):
+    _, extencion = os.path.splitext(filename)
+    filename = f"{slugify(instance.name)}-{uuid.uuid4()}{extencion}"
+    return os.path.join("uploads/trains", filename)
+
 
 
 class Train(models.Model):
@@ -27,6 +35,7 @@ class Train(models.Model):
     cargo_num = models.IntegerField()
     places_in_cargo = models.IntegerField()
     train_type = models.ForeignKey(TrainType, on_delete=models.CASCADE)
+    image = models.ImageField(null=True, upload_to=train_image_file_path)
     
     @property
     def capacity(self) -> int:
