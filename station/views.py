@@ -7,6 +7,7 @@ from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema, OpenApiParameter
 from django.db.models import F, Count
 from rest_framework import mixins, viewsets, status
+from station.permissions import IsAdminOrIfAuthenticatedReadOnly
 from rest_framework.viewsets import GenericViewSet
 from station.models import TrainType, Train, Order, Journey, Crew, Station, Route
 from station.serializers import (
@@ -30,11 +31,13 @@ from station.serializers import (
 class CrewViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, GenericViewSet):
     queryset = Crew.objects.all()
     serializer_class = CrewSerializer
+    permission_classes = (IsAdminOrIfAuthenticatedReadOnly,)
 
 
 class StationViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, GenericViewSet):
     queryset = Station.objects.all()
     serializer_class = StationSerializer
+    permission_classes = (IsAdminOrIfAuthenticatedReadOnly,)
 
 
 class RouteViewSet(
@@ -45,6 +48,7 @@ class RouteViewSet(
 ):
     queryset = Route.objects.all().select_related()
     serializer_class = RouteSerializer
+    permission_classes = (IsAdminOrIfAuthenticatedReadOnly,)
 
     def get_serializer_class(self):
         if self.action == "list":
@@ -55,6 +59,7 @@ class RouteViewSet(
 class TrainTypeViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, GenericViewSet):
     queryset = TrainType.objects.all()
     serializer_class = TrainTypeSerializer
+    permission_classes = (IsAdminOrIfAuthenticatedReadOnly,)
 
 
 class TrainViewSet(
@@ -64,6 +69,7 @@ class TrainViewSet(
     viewsets.GenericViewSet):
     queryset = Train.objects.all().select_related("train_type")
     serializer_class = TrainSerializer
+    permission_classes = (IsAdminOrIfAuthenticatedReadOnly,)
 
     def get_serializer_class(self):
         if self.action == "list":
@@ -102,9 +108,10 @@ class OrderViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, GenericViewSe
     )
     serializer_class = OrderSerializer
     pagination_class = OrderPagination
+    permission_classes = (IsAuthenticated,)
 
-    # def get_queryset(self):
-    #     return Order.objects.filter(user=self.request.user)
+    def get_queryset(self):
+        return Order.objects.filter(user=self.request.user)
     
     def get_serializer_class(self):
         if self.action == "list":
@@ -124,6 +131,7 @@ class JourneyViewSet(viewsets.ModelViewSet):
         )
     )
     serializer_class = JourneySerializer
+    permission_classes = (IsAdminOrIfAuthenticatedReadOnly,)
 
     def get_queryset(self):
         departure_date = self.request.query_params.get("date")
