@@ -1,7 +1,7 @@
 services:
   train_station:
     build:
-    context: .
+      context: .
     env_file:
       - .env
     ports:

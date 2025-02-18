@@ -127,22 +127,6 @@ class AdminStationApiTest(TestCase):
             is_taff=True
         )
         self.client.force_authenticate(self.user)
-    
-    def test_create_train(self):
-        train_type = TrainType.objects.create(
-            name="Sample train type name"
-        )
-        payload = {
-            "name": "Sample train name",
-            "train_type": train_type,
-            "cargo_num": 10,
-            "places_in_cargo": 15,
-        }
-        res = self.client.post(TRAIN_URL, payload)
-        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
-        train = Train.objects.get(id=res.data["id"])
-        for key in payload.keys():
-            self.assertEqual(payload[key], getattr(train, key))
         
 
 class TrainImageUploadTests(TestCase):

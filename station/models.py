@@ -88,6 +88,7 @@ class Order(models.Model):
     class Meta:
         ordering = ["-created_at"]
 
+
 class Ticket(models.Model):
     cargo = models.IntegerField()
     seat = models.IntegerField()
@@ -104,8 +105,8 @@ class Ticket(models.Model):
     @staticmethod
     def validate_ticket(cargo, seat, journey, error_to_rise):
         for ticket_attr_value, ticket_attr_name, journey_attr_name in [
-            (cargo, "cargo", "cargos"),
-            (seat, "seat", "seats"),
+            (cargo, "cargo_num", "cargo_num"),
+            (seat, "places_in_cargo", "places_in_cargo"),
         ]:
             count_attrs = getattr(journey, journey_attr_name)
             if not (1 <= ticket_attr_value <= count_attrs):
@@ -121,7 +122,7 @@ class Ticket(models.Model):
         Ticket.validate_ticket(
             self.cargo,
             self.seat,
-            self.journey.route,
+            self.journey.train,
             ValidationError,
         )
     

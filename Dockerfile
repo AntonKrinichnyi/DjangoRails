@@ -1,7 +1,7 @@
-FROM python:3.9.13-alpine3.16
+FROM python:3.11.5-alpine3.18
 LABEL maintainer="a.krinichnyi@gmail.com"
 
-ENV PYTHOUNNBUFFERED 1
+ENV PYTHOUNNBUFFERED=1
 
 WORKDIR /app
 

@@ -100,6 +100,18 @@ class JourneyListSerializer(JourneySerializer):
                   "tickets_available")
 
 
+class JourneyTicketSerializer(JourneySerializer):
+    route = serializers.SlugRelatedField(
+        many=False,
+        read_only=True,
+        slug_field="full_route"
+    )
+    class Meta:
+        model = Journey
+        fields = ("route",
+                  "departure_time",
+                  "arrival_time",)
+
 class TrainListSerializer(TrainSerializer):
     train_type = serializers.SlugRelatedField(
         many=False,
@@ -156,7 +168,7 @@ class TicketSerializer(serializers.ModelSerializer):
 
 
 class TicketListSerializer(TicketSerializer):
-    journey = JourneyListSerializer(many=True, read_only=True)
+    journey = JourneyTicketSerializer(many=False, read_only=True)
 
 
 class TicketSeatSerializer(TicketSerializer):
@@ -182,11 +194,11 @@ class JourneyDetailSerializer(JourneySerializer):
                 "taken_seats")
 
 class OrderSerializer(serializers.ModelSerializer):
-    ticket = TicketSerializer(many=True, read_only=False, allow_empty=False)
+    tickets = TicketSerializer(many=True, read_only=False, allow_empty=False)
 
     class Meta:
         model = Order
-        fields = ("id", "ticket", "created_at")
+        fields = ("id", "tickets", "created_at")
 
     def create(self, validated_data):
         with transaction.atomic():
@@ -199,3 +211,9 @@ class OrderSerializer(serializers.ModelSerializer):
 
 class OrderListSerializer(OrderSerializer):
     tickets = TicketListSerializer(many=True, read_only=True)
+    
+    class Meta:
+        model = Order
+        fields = ("id",
+                  "tickets",
+                  "created_at")

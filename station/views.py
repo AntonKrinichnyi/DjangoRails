@@ -102,8 +102,8 @@ class OrderPagination(PageNumberPagination):
 
 class OrderViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, GenericViewSet):
     queryset = Order.objects.all().prefetch_related(
-        "tickets__journey__route__sorce",
-        "tickets__journey__destination",
+        "tickets__journey__route__source",
+        "tickets__journey__route__destination",
         "tickets__journey__train__train_type"
     )
     serializer_class = OrderSerializer
@@ -116,7 +116,6 @@ class OrderViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, GenericViewSe
     def get_serializer_class(self):
         if self.action == "list":
             return OrderListSerializer
-
         return OrderSerializer
 
 
@@ -160,7 +159,7 @@ class JourneyViewSet(viewsets.ModelViewSet):
             OpenApiParameter(
                 "route",
                 type=OpenApiTypes.INT,
-                description="Filter by route id (ex. ?movie=2)",
+                description="Filter by route id (ex. ?route=2)",
             ),
             OpenApiParameter(
                 "departure_date",
