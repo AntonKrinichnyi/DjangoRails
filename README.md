@@ -65,7 +65,13 @@ http://127.0.0.1:8001/api/user/token/
 
 ## Features
 
-We have user and station Apps to get acquainted with all endpoints you can read
+* JWT authenticated
+* Admin panel
+* Managing orders and tickets
+* Creating trains, journeys, routs...
+* Filtering journey by route id and date
+
+To get acquainted with all endpoints you can read
 swagger documentation by link
 
 ```shell
