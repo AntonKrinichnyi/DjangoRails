@@ -1,6 +1,6 @@
 # Train Station
 
-A simplified train, station, travel and crew management system. Built on Django Rest Framework
+A Django REST API for seamless train station management—tickets, routes, and JWT-secured orders.
 
 ## Installing using GitHub
 
